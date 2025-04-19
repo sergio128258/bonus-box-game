@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎯 Bonus Box Game – Slots Land</title>
+  <style>
+    body {
+      background: url('https://media.gettyimages.com/id/155351687/photo/roulette-table.jpg?s=612x612&w=0&k=20&c=IoZ7Zssg2OX8S3h3YYeDUDK73WZRJXFZFF4fJ6Khx4I=') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+      backdrop-filter: brightness(0.8);
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      font-size: 22px;
+      padding: 12px 28px;
+      margin: 20px auto;
+      background: #ffcc00;
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #f2b800;
+    }
+
+    .box-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .bonus-box {
+      width: 100px;
+      height: 100px;
+      background: #000000aa;
+      border: 3px solid #fff;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    .bonus-box.selected {
+      background-color: #00c853;
+      transform: scale(1.2);
+    }
+
+    #result {
+      font-size: 24px;
+      margin-top: 20px;
+      text-shadow: 2px 2px 4px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Bonus Box Game</h1>
+  <p>Enter your username and shoot one of the mystery boxes!</p>
+  <input type="text" id="username" placeholder="Your username" />
+  <br>
+  <button onclick="startGame()">Start Game</button>
+
+  <div class="box-container" id="boxContainer"></div>
+
+  <button id="shootButton" style="display:none;" onclick="shootBox()">➤ Shoot</button>
+
+  <div id="result"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const bonuses = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+    let username = '';
+    let boxes = [];
+
+    function startGame() {
+      username = document.getElementById('username').value.trim();
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+
+      const playedUsers = JSON.parse(localStorage.getItem('playedUsers') || '[]');
+
+      if (playedUsers.includes(username)) {
+        document.getElementById('result').textContent = '❌ You have already played!';
+        document.getElementById('boxContainer').innerHTML = '';
+        document.getElementById('shootButton').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('boxContainer').innerHTML = '';
+      document.getElementById('shootButton').style.display = 'inline-block';
+      document.getElementById('result').textContent = '';
+
+      boxes = [];
+
+      for (let i = 0; i < 6; i++) {
+        const box = document.createElement('div');
+        box.className = 'bonus-box';
+        const bonus = bonuses[Math.floor(Math.random() * bonuses.length)];
+        box.dataset.bonus = bonus;
+        box.textContent = '?';
+        boxes.push(box);
+        document.getElementById('boxContainer').appendChild(box);
+      }
+    }
+
+    function shootBox() {
+      const randomBox = boxes[Math.floor(Math.random() * boxes.length)];
+      const bonus = randomBox.dataset.bonus;
+
+      boxes.forEach(box => {
+        box.textContent = '?';
+        box.classList.remove('selected');
+      });
+
+      randomBox.classList.add('selected');
+      randomBox.textContent = bonus + '%';
+
+      const reward = '$' + (10 * (1 + bonus / 100)).toFixed(2);
+      document.getElementById('result').innerHTML = `🎉 You won a ${bonus}% bonus! (${reward})`;
+
+      confetti();
+
+      const playedUsers = JSON.parse(localStorage.getItem('playedUsers') || '[]');
+      playedUsers.push(username);
+      localStorage.setItem('playedUsers', JSON.stringify(playedUsers));
+
+      const resultData = {
+        user: username,
+        date: new Date().toLocaleString(),
+        bonus: bonus + '%',
+        reward: reward
+      };
+      localStorage.setItem('lastWinner', JSON.stringify(resultData));
+
+      document.getElementById('shootButton').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
